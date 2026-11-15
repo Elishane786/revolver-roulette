@@ -10,18 +10,22 @@
   html, body { margin: 0; height: 100%; }
   body { background: #0d0e11; color: #e8e6e1; font-family: system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; touch-action: manipulation; transition: background .12s; }
   body.bang { background: #8a1010; }
-  body.shake #gunbox { animation: kick .35s; }
-  @keyframes kick { 0% { transform: translateY(0); } 20% { transform: translateY(18px) rotate(-1.5deg); } 60% { transform: translateY(-6px); } 100% { transform: translateY(0); } }
+  body.shake #gunbox { animation: kick .4s; }
+  @keyframes kick { 0% { transform: translateY(0) rotate(0); } 15% { transform: translateY(26px) rotate(-3deg); } 55% { transform: translateY(-6px) rotate(.8deg); } 100% { transform: translateY(0) rotate(0); } }
 
   #stage { position: relative; flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; }
-  #gunbox { height: 100%; width: 100%; display: flex; justify-content: center; }
+  #gunbox { height: 100%; width: 100%; padding-top: 78px; display: flex; justify-content: center; transform-origin: 50% 100%; }
   #gun { height: 100%; width: auto; max-width: 100%; display: block; }
   #flash { opacity: 0; transition: opacity .05s; }
   body.bang #flash { opacity: 1; }
 
   #msg { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 30px; font-weight: 800; letter-spacing: .06em; text-shadow: 0 2px 8px #000; pointer-events: none; }
-  #stats { position: absolute; top: 10px; left: 12px; font-size: 12px; opacity: .7; line-height: 1.5; }
-  #reset { position: absolute; top: 8px; right: 10px; font-size: 12px; padding: 7px 12px; border-radius: 8px; border: 1px solid #3a3f48; background: #1b1d22; color: #e8e6e1; }
+  .panel { position: absolute; top: 10px; font-size: 17px; line-height: 1.45; padding: 8px 12px; border-radius: 10px; background: rgba(20,22,26,.7); border: 1px solid #2c3038; z-index: 2; }
+  .panel b { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; opacity: .6; font-weight: 600; }
+  .panel span { font-weight: 700; }
+  #total { left: 10px; }
+  #round { right: 10px; text-align: right; }
+  #reset { position: absolute; bottom: 14px; right: 10px; font-size: 12px; padding: 7px 12px; border-radius: 8px; border: 1px solid #3a3f48; background: #1b1d22; color: #e8e6e1; z-index: 2; }
 
   #fire { flex: 0 0 25vh; flex: 0 0 25dvh; width: 100%; border: 0; border-top: 3px solid #6b1a12; background: #c0392b; color: #fff; font-size: 11vw; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; padding-bottom: env(safe-area-inset-bottom); }
   #fire:active { background: #a62e22; }
@@ -32,62 +36,100 @@
 <body>
   <div id="stage">
     <div id="gunbox">
-      <svg id="gun" viewBox="0 -24 200 424" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
+      <svg id="gun" viewBox="0 -30 240 440" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#4b515c"/><stop offset=".45" stop-color="#9aa1ae"/><stop offset="1" stop-color="#3b404a"/>
+          <linearGradient id="steelV" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1e2128"/><stop offset=".2" stop-color="#8b93a2"/><stop offset=".42" stop-color="#5a6170"/><stop offset=".78" stop-color="#2a2e36"/><stop offset="1" stop-color="#13151a"/>
           </linearGradient>
-          <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#4a2a17"/><stop offset=".5" stop-color="#7a4a2a"/><stop offset="1" stop-color="#3e2312"/>
+          <linearGradient id="frameV" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2a2e38"/><stop offset=".25" stop-color="#626b7b"/><stop offset=".55" stop-color="#363b46"/><stop offset="1" stop-color="#14161b"/>
           </linearGradient>
+          <linearGradient id="woodV" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#3a2010"/><stop offset=".45" stop-color="#7a4a28"/><stop offset="1" stop-color="#2d190b"/>
+          </linearGradient>
+          <linearGradient id="cylV" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#101216"/><stop offset=".12" stop-color="#4a505c"/><stop offset=".34" stop-color="#b7bec9"/><stop offset=".52" stop-color="#8a92a1"/><stop offset=".82" stop-color="#363b46"/><stop offset="1" stop-color="#0e1014"/>
+          </linearGradient>
+          <filter id="mb" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur id="blur" stdDeviation="0 0"/></filter>
+          <clipPath id="cylClip"><rect x="124" y="50" width="82" height="80" rx="7"/></clipPath>
         </defs>
-        <!-- gun drawn pointing right, then rotated so the barrel points up -->
+
+        <!-- drawn pointing right, then rotated so the barrel points up -->
         <g transform="translate(0,400) rotate(-90)">
           <!-- grip -->
-          <path d="M92 104 L146 104 L120 196 Q100 204 66 192 Z" fill="url(#wood)" stroke="#1d1008" stroke-width="2"/>
-          <path d="M104 122 L132 122 M100 140 L127 140 M96 158 L122 158 M92 176 L116 176" stroke="#2a170b" stroke-width="2" opacity=".6"/>
-          <!-- trigger guard + trigger -->
-          <path d="M150 108 Q152 144 186 140 Q198 138 200 112" fill="none" stroke="#6c7380" stroke-width="5" stroke-linecap="round"/>
-          <path d="M172 110 Q170 128 178 130" fill="none" stroke="#c9ced8" stroke-width="5" stroke-linecap="round"/>
-          <!-- barrel -->
-          <rect x="196" y="58" width="176" height="24" rx="3" fill="url(#steel)" stroke="#20242b" stroke-width="2"/>
-          <rect x="196" y="63" width="176" height="4" fill="#d6dae2" opacity=".35"/>
-          <!-- ejector rod under barrel -->
-          <rect x="206" y="86" width="120" height="9" rx="3" fill="url(#steel)" stroke="#20242b" stroke-width="1.5"/>
-          <rect x="324" y="84" width="16" height="13" rx="3" fill="#6c7380" stroke="#20242b" stroke-width="1.5"/>
-          <!-- front sight and muzzle -->
-          <path d="M356 58 L362 44 L368 58 Z" fill="#c9ced8" stroke="#20242b" stroke-width="1.5"/>
-          <rect x="366" y="56" width="8" height="28" rx="2" fill="#2a2e36"/>
-          <ellipse cx="374" cy="70" rx="2.5" ry="7" fill="#050607"/>
-          <!-- frame -->
-          <path d="M84 52 L206 52 L206 108 L150 112 L100 108 Z" fill="url(#steel)" stroke="#20242b" stroke-width="2.5"/>
-          <!-- cylinder -->
-          <rect x="116" y="44" width="92" height="76" rx="8" fill="url(#steel)" stroke="#20242b" stroke-width="2.5"/>
-          <g stroke="#20242b" stroke-width="2.5" opacity=".75">
-            <line x1="132" y1="48" x2="132" y2="116"/><line x1="152" y1="48" x2="152" y2="116"/>
-            <line x1="172" y1="48" x2="172" y2="116"/><line x1="192" y1="48" x2="192" y2="116"/>
+          <path d="M76 108 L128 108 L114 170 Q106 210 94 224 L48 220 Q50 190 56 160 Z" fill="url(#woodV)" stroke="#1a0e06" stroke-width="2"/>
+          <g stroke="#1f1108" stroke-width="1.6" opacity=".55">
+            <line x1="70" y1="136" x2="118" y2="136"/><line x1="66" y1="152" x2="114" y2="152"/>
+            <line x1="62" y1="168" x2="108" y2="168"/><line x1="60" y1="184" x2="104" y2="184"/>
+            <line x1="58" y1="200" x2="100" y2="200"/>
           </g>
-          <rect x="116" y="44" width="92" height="9" rx="4" fill="#fff" opacity=".12"/>
+          <path d="M76 108 L56 160 Q50 190 48 220" fill="none" stroke="#3a404c" stroke-width="5" stroke-linecap="round"/>
+          <path d="M48 220 L94 224" fill="none" stroke="#2a2e36" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="90" cy="146" r="5" fill="#8d95a4" stroke="#1a1c22" stroke-width="1.5"/><line x1="87" y1="146" x2="93" y2="146" stroke="#1a1c22" stroke-width="1.5"/>
+
+          <!-- trigger guard and trigger -->
+          <path d="M132 134 Q134 174 178 168 Q202 164 206 132" fill="none" stroke="#4a515f" stroke-width="6" stroke-linecap="round"/>
+          <path d="M132 134 Q134 174 178 168 Q202 164 206 132" fill="none" stroke="#9aa2b1" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+          <g id="trig"><path d="M168 128 Q163 150 174 154" fill="none" stroke="#c8ced9" stroke-width="5" stroke-linecap="round"/></g>
+
+          <!-- barrel, under lug and ejector rod -->
+          <rect x="200" y="50" width="172" height="24" rx="2" fill="url(#steelV)" stroke="#0c0d10" stroke-width="2"/>
+          <rect x="204" y="51.5" width="164" height="3.5" fill="#e3e7ee" opacity=".4"/>
+          <rect x="200" y="74" width="128" height="16" fill="url(#steelV)" stroke="#0c0d10" stroke-width="2"/>
+          <rect x="206" y="91" width="118" height="7" rx="3" fill="url(#steelV)" stroke="#0c0d10" stroke-width="1.5"/>
+          <rect x="322" y="86" width="14" height="16" rx="3" fill="#6a7282" stroke="#0c0d10" stroke-width="1.5"/>
+          <path d="M350 50 L356 38 L364 38 L366 50 Z" fill="#c8ced9" stroke="#0c0d10" stroke-width="1.5"/>
+          <rect x="366" y="47" width="9" height="30" rx="2" fill="#2a2e36" stroke="#0c0d10" stroke-width="1.5"/>
+          <ellipse cx="374" cy="62" rx="2.6" ry="8" fill="#050607"/>
+
+          <!-- rear frame -->
+          <path d="M64 58 Q64 42 82 42 L212 42 L212 52 L122 52 L122 136 L88 130 L64 110 Z" fill="url(#frameV)" stroke="#0b0c0f" stroke-width="2"/>
+          <path d="M98 42 L104 48 L110 42 Z" fill="#0b0c0f"/>
+          <rect x="98" y="70" width="20" height="9" rx="2" fill="#7b8393" stroke="#0b0c0f" stroke-width="1.2"/>
+          <circle cx="82" cy="94" r="3.4" fill="#8d95a4" stroke="#0b0c0f" stroke-width="1.2"/>
+
+          <!-- cylinder -->
+          <g clip-path="url(#cylClip)">
+            <rect x="124" y="50" width="82" height="80" fill="url(#cylV)"/>
+            <g id="flutes" filter="url(#mb)"></g>
+            <line x1="132" y1="50" x2="132" y2="130" stroke="#0b0c0f" stroke-width="2.2"/>
+            <line x1="198" y1="50" x2="198" y2="130" stroke="#0b0c0f" stroke-width="2.2"/>
+            <rect x="124" y="50" width="82" height="7" fill="#fff" opacity=".1"/>
+          </g>
+          <rect x="124" y="50" width="82" height="80" rx="7" fill="none" stroke="#0b0c0f" stroke-width="2.4"/>
+
+          <!-- front frame and lower frame -->
+          <rect x="206" y="42" width="12" height="94" rx="3" fill="url(#frameV)" stroke="#0b0c0f" stroke-width="2"/>
+          <path d="M122 130 L210 130 L210 142 L134 146 Z" fill="url(#frameV)" stroke="#0b0c0f" stroke-width="2"/>
+
           <!-- hammer -->
-          <path d="M92 54 Q76 44 70 28 L84 24 Q92 38 104 46 Z" fill="#6c7380" stroke="#20242b" stroke-width="2"/>
+          <g id="hammer">
+            <path d="M70 54 L78 28 Q84 20 94 24 L100 40 L104 58 L96 68 L80 66 Z" fill="url(#steelV)" stroke="#0b0c0f" stroke-width="2"/>
+            <g stroke="#0b0c0f" stroke-width="1.4" opacity=".7"><line x1="78" y1="30" x2="86" y2="34"/><line x1="76" y1="36" x2="86" y2="40"/><line x1="74" y1="42" x2="86" y2="46"/></g>
+          </g>
+
           <!-- muzzle flash, hidden until the bang -->
           <g id="flash">
-            <polygon points="376,70 404,42 394,66 422,70 394,74 404,98" fill="#ffd34d"/>
-            <polygon points="376,70 396,58 390,70 410,70 390,72 396,82" fill="#fff6c8"/>
+            <polygon points="376,62 406,32 396,56 430,62 396,68 406,92" fill="#ffd34d"/>
+            <polygon points="376,62 398,50 392,62 412,62 392,64 398,76" fill="#fff6c8"/>
           </g>
         </g>
       </svg>
     </div>
-    <div id="stats"></div>
+    <div id="total" class="panel"></div>
+    <div id="round" class="panel"></div>
     <button id="reset">Reset</button>
-    <div id="msg">Aim and fire</div>
+    <div id="msg">Loading...</div>
   </div>
   <button id="fire">Fire</button>
 <script>
 (function () {
-  var N = 6, bullet = 0, pos = 0, over = false, safe = 0, dead = 0, streak = 0, ctx = null;
-  var msg = document.getElementById('msg'), stats = document.getElementById('stats');
+  var N = 6, bullet = 0, pos = 0, over = false, busy = false, safe = 0, dead = 0, used = 0, roundNo = 1, ctx = null;
+  var cylAngle = 0, lastTick = 0, lastClickAt = 0;
+  var msg = document.getElementById('msg'), totalEl = document.getElementById('total'), roundEl = document.getElementById('round');
   var fireB = document.getElementById('fire'), resetB = document.getElementById('reset');
+  var flutesG = document.getElementById('flutes'), blurEl = document.getElementById('blur');
+  var hammerEl = document.getElementById('hammer'), trigEl = document.getElementById('trig');
 
   function audio() {
     try { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) { ctx = null; }
@@ -102,42 +144,124 @@
       s.connect(f); f.connect(g); g.connect(ctx.destination); s.start();
     } catch (e) {}
   }
-  function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  // cylinder: six flutes placed around a drum, seen from the side
+  function drawCyl(blur) {
+    var cy = 90, R = 40, s = '';
+    for (var i = 0; i < N; i++) {
+      var th = ((cylAngle + i * 60) % 360 + 540) % 360 - 180;
+      var a1 = Math.max(-90, Math.min(90, th - 15)), a2 = Math.max(-90, Math.min(90, th + 15));
+      if (th - 15 >= 90 || th + 15 <= -90) continue;
+      var y1 = cy + R * Math.sin(a1 * Math.PI / 180), y2 = cy + R * Math.sin(a2 * Math.PI / 180);
+      var top = Math.min(y1, y2), h = Math.abs(y2 - y1);
+      if (h < 0.5) continue;
+      s += '<rect x="134" y="' + top.toFixed(2) + '" width="62" height="' + h.toFixed(2) + '" rx="3" fill="#0b0d11" fill-opacity=".88" stroke="#b7bec9" stroke-opacity=".3" stroke-width="1"/>';
+    }
+    flutesG.innerHTML = s;
+    blurEl.setAttribute('stdDeviation', '0 ' + (blur || 0).toFixed(2));
+  }
+  function setHammer(d) { hammerEl.setAttribute('transform', 'rotate(' + d.toFixed(2) + ' 94 60)'); }
+  function setTrig(d) { trigEl.setAttribute('transform', 'rotate(' + d.toFixed(2) + ' 168 124)'); }
+  function easeOut(p) { return 1 - Math.pow(1 - p, 3); }
+  function anim(dur, step, done) {
+    var t0 = performance.now();
+    function f(t) {
+      var p = Math.min(1, (t - t0) / dur);
+      step(p);
+      if (p < 1) requestAnimationFrame(f); else if (done) done();
+    }
+    requestAnimationFrame(f);
+  }
+  function ratchet() {
+    var k = Math.floor(cylAngle / 60), now = performance.now();
+    if (k !== lastTick) {
+      lastTick = k;
+      if (now - lastClickAt > 40) { lastClickAt = now; noise(0.02, 0.18, 4200); }
+    }
+  }
+
+  // spin the whole cylinder several times, slowing to a stop
+  function spin(done) {
+    var a0 = cylAngle, total = 360 * 5 + 60 * Math.floor(Math.random() * N), dur = 1900;
+    anim(dur, function (p) {
+      var e = easeOut(p);
+      cylAngle = a0 + total * e;
+      var speed = 3 * Math.pow(1 - p, 2);
+      drawCyl(Math.min(3.5, speed * 1.4));
+      setHammer(0);
+      ratchet();
+    }, function () { drawCyl(0); if (done) done(); });
+  }
+
+  // trigger pull: hammer cocks, cylinder turns one chamber, hammer drops
+  function pullTrigger(done) {
+    var a0 = cylAngle;
+    noise(0.04, 0.3, 3000);
+    anim(170, function (p) {
+      var e = easeOut(p);
+      cylAngle = a0 + 60 * e;
+      setHammer(-30 * e);
+      setTrig(14 * e);
+      drawCyl(3 * Math.sin(Math.PI * p));
+      ratchet();
+    }, function () {
+      anim(55, function (p) {
+        setHammer(-30 * (1 - p));
+      }, function () {
+        setHammer(0);
+        setTimeout(function () { setTrig(0); }, 90);
+        done();
+      });
+    });
+  }
 
   function showStats() {
-    stats.innerHTML = 'Clicks: ' + safe + '<br>Bangs: ' + dead + '<br>Streak: ' + streak;
+    totalEl.innerHTML = '<b>Total</b>Clicks: <span>' + safe + '</span><br>Bangs: <span>' + dead + '</span>';
+    roundEl.innerHTML = '<b>Round ' + roundNo + '</b><span>' + used + '</span> used<br><span>' + (N - used) + '</span> chambers left';
   }
   function newGame() {
     bullet = Math.floor(Math.random() * N);
     pos = Math.floor(Math.random() * N);
-    over = false;
-    fireB.disabled = false;
+    over = false; used = 0; busy = true;
+    fireB.disabled = true;
     fireB.textContent = 'Fire';
     document.body.classList.remove('bang', 'shake');
-    msg.textContent = 'Aim and fire';
+    msg.textContent = 'Spinning...';
     showStats();
+    spin(function () {
+      busy = false; fireB.disabled = false;
+      msg.textContent = 'Aim and fire';
+    });
   }
 
-  fireB.onclick = function () {
-    if (over) return;
-    audio();
+  function resolveShot() {
+    used++;
     if (pos === bullet) {
-      over = true; dead++; streak = 0;
+      over = true; busy = false; dead++;
       noise(0.55, 1, 1800); buzz([300, 60, 200]);
       document.body.classList.add('bang', 'shake');
       msg.textContent = 'BANG';
       fireB.disabled = true;
       fireB.textContent = 'Bang';
-      showStats();
     } else {
-      safe++; streak++;
+      safe++;
       pos = (pos + 1) % N;
-      noise(0.06, 0.45, 5000); buzz(30);
+      noise(0.07, 0.5, 5500); buzz(30);
       msg.textContent = 'Click. Safe.';
-      showStats();
+      busy = false;
     }
+    showStats();
+  }
+
+  fireB.onclick = function () {
+    if (over || busy) return;
+    audio(); busy = true;
+    pullTrigger(resolveShot);
   };
-  resetB.onclick = function () { audio(); newGame(); };
+  resetB.onclick = function () { if (busy) return; audio(); roundNo++; newGame(); };
+
+  drawCyl(0); setHammer(0); setTrig(0);
   newGame();
 })();
 </script>
