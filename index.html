@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Revolver Roulette</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #0d0e11; color: #e8e6e1; font-family: system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; touch-action: manipulation; transition: background .12s; }
+  body.bang { background: #8a1010; }
+  body.shake #gunbox { animation: kick .35s; }
+  @keyframes kick { 0% { transform: translateY(0); } 20% { transform: translateY(18px) rotate(-1.5deg); } 60% { transform: translateY(-6px); } 100% { transform: translateY(0); } }
+
+  #stage { position: relative; flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; }
+  #gunbox { height: 100%; width: 100%; display: flex; justify-content: center; }
+  #gun { height: 100%; width: auto; max-width: 100%; display: block; }
+  #flash { opacity: 0; transition: opacity .05s; }
+  body.bang #flash { opacity: 1; }
+
+  #msg { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 30px; font-weight: 800; letter-spacing: .06em; text-shadow: 0 2px 8px #000; pointer-events: none; }
+  #stats { position: absolute; top: 10px; left: 12px; font-size: 12px; opacity: .7; line-height: 1.5; }
+  #reset { position: absolute; top: 8px; right: 10px; font-size: 12px; padding: 7px 12px; border-radius: 8px; border: 1px solid #3a3f48; background: #1b1d22; color: #e8e6e1; }
+
+  #fire { flex: 0 0 25vh; flex: 0 0 25dvh; width: 100%; border: 0; border-top: 3px solid #6b1a12; background: #c0392b; color: #fff; font-size: 11vw; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; padding-bottom: env(safe-area-inset-bottom); }
+  #fire:active { background: #a62e22; }
+  #fire:disabled { background: #3a1511; color: #8c5a55; }
+  @media (min-width: 600px) { #fire { font-size: 56px; } #gun { max-height: 100%; } }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="gunbox">
+      <svg id="gun" viewBox="0 -24 200 424" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#4b515c"/><stop offset=".45" stop-color="#9aa1ae"/><stop offset="1" stop-color="#3b404a"/>
+          </linearGradient>
+          <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#4a2a17"/><stop offset=".5" stop-color="#7a4a2a"/><stop offset="1" stop-color="#3e2312"/>
+          </linearGradient>
+        </defs>
+        <!-- gun drawn pointing right, then rotated so the barrel points up -->
+        <g transform="translate(0,400) rotate(-90)">
+          <!-- grip -->
+          <path d="M92 104 L146 104 L120 196 Q100 204 66 192 Z" fill="url(#wood)" stroke="#1d1008" stroke-width="2"/>
+          <path d="M104 122 L132 122 M100 140 L127 140 M96 158 L122 158 M92 176 L116 176" stroke="#2a170b" stroke-width="2" opacity=".6"/>
+          <!-- trigger guard + trigger -->
+          <path d="M150 108 Q152 144 186 140 Q198 138 200 112" fill="none" stroke="#6c7380" stroke-width="5" stroke-linecap="round"/>
+          <path d="M172 110 Q170 128 178 130" fill="none" stroke="#c9ced8" stroke-width="5" stroke-linecap="round"/>
+          <!-- barrel -->
+          <rect x="196" y="58" width="176" height="24" rx="3" fill="url(#steel)" stroke="#20242b" stroke-width="2"/>
+          <rect x="196" y="63" width="176" height="4" fill="#d6dae2" opacity=".35"/>
+          <!-- ejector rod under barrel -->
+          <rect x="206" y="86" width="120" height="9" rx="3" fill="url(#steel)" stroke="#20242b" stroke-width="1.5"/>
+          <rect x="324" y="84" width="16" height="13" rx="3" fill="#6c7380" stroke="#20242b" stroke-width="1.5"/>
+          <!-- front sight and muzzle -->
+          <path d="M356 58 L362 44 L368 58 Z" fill="#c9ced8" stroke="#20242b" stroke-width="1.5"/>
+          <rect x="366" y="56" width="8" height="28" rx="2" fill="#2a2e36"/>
+          <ellipse cx="374" cy="70" rx="2.5" ry="7" fill="#050607"/>
+          <!-- frame -->
+          <path d="M84 52 L206 52 L206 108 L150 112 L100 108 Z" fill="url(#steel)" stroke="#20242b" stroke-width="2.5"/>
+          <!-- cylinder -->
+          <rect x="116" y="44" width="92" height="76" rx="8" fill="url(#steel)" stroke="#20242b" stroke-width="2.5"/>
+          <g stroke="#20242b" stroke-width="2.5" opacity=".75">
+            <line x1="132" y1="48" x2="132" y2="116"/><line x1="152" y1="48" x2="152" y2="116"/>
+            <line x1="172" y1="48" x2="172" y2="116"/><line x1="192" y1="48" x2="192" y2="116"/>
+          </g>
+          <rect x="116" y="44" width="92" height="9" rx="4" fill="#fff" opacity=".12"/>
+          <!-- hammer -->
+          <path d="M92 54 Q76 44 70 28 L84 24 Q92 38 104 46 Z" fill="#6c7380" stroke="#20242b" stroke-width="2"/>
+          <!-- muzzle flash, hidden until the bang -->
+          <g id="flash">
+            <polygon points="376,70 404,42 394,66 422,70 394,74 404,98" fill="#ffd34d"/>
+            <polygon points="376,70 396,58 390,70 410,70 390,72 396,82" fill="#fff6c8"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div id="stats"></div>
+    <button id="reset">Reset</button>
+    <div id="msg">Aim and fire</div>
+  </div>
+  <button id="fire">Fire</button>
+<script>
+(function () {
+  var N = 6, bullet = 0, pos = 0, over = false, safe = 0, dead = 0, streak = 0, ctx = null;
+  var msg = document.getElementById('msg'), stats = document.getElementById('stats');
+  var fireB = document.getElementById('fire'), resetB = document.getElementById('reset');
+
+  function audio() {
+    try { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) { ctx = null; }
+  }
+  function noise(dur, vol, freq) {
+    if (!ctx) return;
+    try {
+      var len = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      var s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      s.buffer = buf; f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
+      s.connect(f); f.connect(g); g.connect(ctx.destination); s.start();
+    } catch (e) {}
+  }
+  function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+
+  function showStats() {
+    stats.innerHTML = 'Clicks: ' + safe + '<br>Bangs: ' + dead + '<br>Streak: ' + streak;
+  }
+  function newGame() {
+    bullet = Math.floor(Math.random() * N);
+    pos = Math.floor(Math.random() * N);
+    over = false;
+    fireB.disabled = false;
+    fireB.textContent = 'Fire';
+    document.body.classList.remove('bang', 'shake');
+    msg.textContent = 'Aim and fire';
+    showStats();
+  }
+
+  fireB.onclick = function () {
+    if (over) return;
+    audio();
+    if (pos === bullet) {
+      over = true; dead++; streak = 0;
+      noise(0.55, 1, 1800); buzz([300, 60, 200]);
+      document.body.classList.add('bang', 'shake');
+      msg.textContent = 'BANG';
+      fireB.disabled = true;
+      fireB.textContent = 'Bang';
+      showStats();
+    } else {
+      safe++; streak++;
+      pos = (pos + 1) % N;
+      noise(0.06, 0.45, 5000); buzz(30);
+      msg.textContent = 'Click. Safe.';
+      showStats();
+    }
+  };
+  resetB.onclick = function () { audio(); newGame(); };
+  newGame();
+})();
+</script>
+</body>
+</html>
